@@ -175,10 +175,11 @@ function getRandomWord(callback){
 function play(){
     getRandomWord(function(output){
         
-        getFullDict(output.word, function(fullInfo){
+        getFullDict(output, function(fullInfo){
+            var fullInfo = fullInfo;
             fullInfo["word"] = output;
-            console.log(fullInfo[0]);
             console.log("*** Welcome to word guess game ***\n");
+            console.log("----------------------------------");
             console.log("  Definition: "+fullInfo.Definitions[0]);
             console.log("  Synonym: "+fullInfo.Synonyms[0]);
             console.log("  Antonym: "+fullInfo.Antonyms[0]);
@@ -217,7 +218,8 @@ function repeat(fullInfo){
             guessTheWord(fullInfo);
         }
         else{
-            console.log("The word is "+fullInfo.word);
+            console.log('\033[2J');
+            console.log("The word is '"+fullInfo.word+'"');
             displayFullDict(fullInfo);
         }
     });
@@ -251,27 +253,67 @@ function requestApi(url, cb){
 }
 
 function displayResults(word, title, info){
+    console.log();
     console.log(title+" of the word '"+word+"' are:");
-    async.forEach(info, function(row){
+    console.log("--------------------------------------");
+    info.forEach(function(row){
         console.log("\t* "+row);
     });
 }
 
+function displayFullDict(fullInfo){
+    console.log("\nFull dictionary of the word '"+fullInfo.word+"':");
+    console.log("-----------------------------------------------");
+    displayResults(fullInfo.word, "'Definitions'", fullInfo.Definitions);
+    displayResults(fullInfo.word, "'Synonyms'", fullInfo.Synonyms);
+    displayResults(fullInfo.word, "'Antonyms'", fullInfo.Antonyms);
+    displayResults(fullInfo.word, "'Examples'", fullInfo.Examples);
+}
+
 var args = process.argv.slice(2);
 
-word = 'freedom';
+if(args.length == 2){
+    var method = args[0];
+    var word = args[1];
+    switch (method){
+        case 'def':
+            getDefinitions(word, function(result){
+                displayResults(word, "'Definitions'", result);
+            });
+            break;
+        case 'syn':
+            getSynonyms(word, function(result){
+                displayResults(word, "'Synonyms'", result);
+            });
+            break;
+        case 'ant':
+            getAntonyms(word, function(result){
+                displayResults(word, "'Antonyms'", result);
+            });
+            break;
+        case 'ex':
+            getExamples(word, function(result){
+                displayResults(word, "'Examples'", result);
+            });
+            break;
+        case 'dict':
+            getFullDict(word, function(fullInfo){
+                fullInfo["word"] = word;
+                displayFullDict(fullInfo);
+            });
+            break;
+    }
+}
+else if(args.length == 1){
+    play();
+}
+else{
+    getWOD(function(word){
+        console.log("\nWord of the Day is : "+ word);
+        getFullDict(word, function(fullInfo){
+            fullInfo["word"] = word;
+            displayFullDict(fullInfo);
+        });
+    });
+}
 
-//getWOD(function(defs){
-//    console.log(defs);
-//})
-//getSynonyms(word);
-//getAntonyms(word);
-//getExamples(word);
-//getWOD();
-//getRandomWord();
-//getFullDict(word, function(result){
-//    console.log(result);
-//});
-play();
-
-//console.log(args)
