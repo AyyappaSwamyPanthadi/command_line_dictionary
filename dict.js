@@ -12,25 +12,25 @@ var headers = {
 
 //Method to get word definition
 function getDefinition(word){
-
+    var url = 'https://api.wordnik.com/v4/word.json/'+word+'/definitions?limit=200&includeRelated=false&useCanonical=false&includeTags=false&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
     return definitions;
 }
 
 //Method to get word synonyms
 function getSynonyms(word){
-
+i   var url = 'https://api.wordnik.com/v4/word.json/'+word+'/relatedWords?useCanonical=false&relationshipTypes=synonym&limitPerRelationshipType=10&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
     return synonyms;
 }
 
 //Method to get word antonyms
 function getAntonyms(word){
-
+    var url = 'https://api.wordnik.com/v4/word.json/'+word+'/relatedWords?useCanonical=false&relationshipTypes=antonym&limitPerRelationshipType=10&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
     return antonyms;
 }
 
 //Method to get word examples
 function getExamples(word){
-
+    var url = 'https://api.wordnik.com/v4/word.json/'+word+'/examples?includeDuplicates=false&useCanonical=false&limit=5&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
     return examples;
 }
 
@@ -44,14 +44,13 @@ function getFullDict(word){
 
 //Method to get word of the day
 function getWOD(){
-
+    var url = 'https://api.wordnik.com/v4/words.json/wordOfTheDay?api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
     return word;
 }
 
 //Method to get random word
 function getRandomWord(){
-
-
+    var url = 'https://api.wordnik.com/v4/words.json/randomWord?hasDictionaryDef=true&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=5&maxLength=-1&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
     return word;
 }
 
@@ -82,4 +81,3 @@ function requestApi(url, callback){
 
 var args = process.argv.slice(2);
 
-url: 'https://api.wordnik.com/v4/word.json/angry/definitions?limit=200&includeRelated=false&sourceDictionaries=all&useCanonical=false&includeTags=false&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e',
