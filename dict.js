@@ -24,7 +24,7 @@ function getDefinitions(word, callback){
                 definitions.push(definition.text);
                 cb()
             }, function(){
-                callback({'Definitions': definitions});
+                callback(definitions);
             });
             //console.log(json_data);
         }
@@ -33,7 +33,6 @@ function getDefinitions(word, callback){
             callback();
         }
     });
-    //return definitions;
 }
 
 //Method to get word synonyms
@@ -42,21 +41,22 @@ function getSynonyms(word, callback){
     
     requestApi(url, function(error, json_data){
         var synonyms = [];
-        if(!error){
+        if(!error && json_data[0]){
             async.each(json_data[0].words, function(synonym, cb){
                 synonyms.push(synonym);
                 cb()
             }, function(){
-                callback({'Synonyms': synonyms});
+                callback(synonyms);
             });
+        }
+        else if (!json_data[0]){
+            callback([]);
         }
         else{
             console.log("There is something problem with wordnik API. Try again sometime.\n");
             callback();
         }
     });
-
-    //return synonyms;
 }
 
 //Method to get word antonyms
@@ -65,21 +65,22 @@ function getAntonyms(word, callback){
 
     requestApi(url, function(error, json_data){
         var antonyms = [];
-        if(!error){
+        if(!error && json_data[0]){
             async.each(json_data[0].words, function(antonym, cb){
                 antonyms.push(antonym);
                 cb()
             }, function(){
-                callback({'Antonyms': antonyms});
+                callback(antonyms);
             });
+        }
+        else if(!json_data[0]){
+            callback([]);
         }
         else{
             console.log("There is something problem with wordnik API. Try again sometime.\n");
             callback();
         }
     });
-
-    //return antonyms;
 }
 
 //Method to get word examples
@@ -88,49 +89,50 @@ function getExamples(word, callback){
 
     requestApi(url, function(error, json_data){
         var examples = [];
-        if(!error){
+        if(!error && json_data.examples){
             async.each(json_data.examples, function(example, cb){
                 examples.push(example.text);
                 cb()
             }, function(){
-                callback({'Examples': examples});
+                callback(examples);
             });
+        }
+        else if(!json_data.examples){
+            callback([]);
         }
         else{
             console.log("There is something problem with wordnik API. Try again sometime.\n");
             callback();
         }
     });
-
-    //return examples;
 }
 
 //Method to get full information about word
 function getFullDict(word, cb){
-    var fullInfo = [];
+    var fullInfo = {};
 
     async.series([
         function(callback){
             getDefinitions(word, function(result){
-                fullInfo.push(result);
+                fullInfo['Definitions'] = result;
                 callback();
             });
         },
         function(callback){
             getSynonyms(word, function(result){
-                fullInfo.push(result);
+                fullInfo['Synonyms'] = result;
                 callback();
             });
         },
         function(callback){
             getAntonyms(word, function(result){
-                fullInfo.push(result);
+                fullInfo['Antonyms'] = result;
                 callback();
             });
         },
         function(callback){
             getExamples(word, function(result){
-                fullInfo.push(result);
+                fullInfo['Examples'] = result;
                 callback();
             })}], 
         function(result){
@@ -144,39 +146,92 @@ function getWOD(callback){
     var url = 'https://api.wordnik.com/v4/words.json/wordOfTheDay?api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
 
     requestApi(url, function(error, json_data){
-        if(!error){
-            callback({'word': json_data.word});
+        if(!error && json_data.word){
+            callback(json_data.word);
         }
         else{
             console.log("There is something problem with wordnik API. Try again sometime.\n");
-            callback();
+            callback('');
         }
     });
-
-    //return word;
 }
 
 //Method to get random word
 function getRandomWord(callback){
-    var url = 'https://api.wordnik.com/v4/words.json/randomWord?hasDictionaryDef=true&maxCorpusCount=-1&minDictionaryCount=1&maxDictionaryCount=-1&minLength=5&maxLength=-1&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
+    var url = 'https://api.wordnik.com/v4/words.json/randomWord?hasDictionaryDef=true&includePartOfSpeech=noun%2C%20adjective%2C%20verb&maxCorpusCount=-1&minDictionaryCount=5&maxDictionaryCount=-1&minLength=2&maxLength=-1&api_key=c23b746d074135dc9500c0a61300a3cb7647e53ec2b9b658e';
 
     requestApi(url, function(error, json_data){
         if(!error){
-            callback({'word': json_data.word});
+            callback(json_data.word);
         }
         else{
             console.log("There is something problem with wordnik API. Try again sometime.\n");
             callback()
         }
     });
-
-    //return word;
 }
 
 //Method to play word game
 function play(){
     getRandomWord(function(output){
-        console.log(output.word);
+        
+        getFullDict(output.word, function(fullInfo){
+            fullInfo["word"] = output;
+            console.log(fullInfo[0]);
+            console.log("*** Welcome to word guess game ***\n");
+            console.log("  Definition: "+fullInfo.Definitions[0]);
+            console.log("  Synonym: "+fullInfo.Synonyms[0]);
+            console.log("  Antonym: "+fullInfo.Antonyms[0]);
+            
+            fullInfo.Definitions.push(fullInfo.Definitions.splice(0, 1)[0]);
+
+            guessTheWord(fullInfo);
+        });
+
+    });
+}
+
+function guessTheWord(fullInfo){
+    prompt("\nGuess the word :", function(input){
+        if(input == fullInfo.word){
+            console.log("\n\n\n**************************************\nCongrats !!! Your guess is correct!\n**************************************");
+        }
+        else{
+            console.log("\nWrong guess");
+            repeat(fullInfo);
+        }
+    });
+}
+
+function repeat(fullInfo){
+    console.log("\t1. Try Again");
+    console.log("\t2. Get a hint");
+    console.log("\t3. Exit");
+    prompt("\nEnter your choice:", function(input){
+        if(input == 1){
+            guessTheWord(fullInfo);
+        }
+        else if(input == 2 && fullInfo.Definitions != null){
+            console.log("Hint: Another definition - "+fullInfo.Definitions[0]);
+            fullInfo.Definitions.push(fullInfo.Definitions.splice(0, 1)[0]);
+            guessTheWord(fullInfo);
+        }
+        else{
+            console.log("The word is "+fullInfo.word);
+            displayFullDict(fullInfo);
+        }
+    });
+}
+
+function prompt(question, callback) {
+    var stdin = process.stdin,
+        stdout = process.stdout;
+
+    stdin.resume();
+    stdout.write(question);
+
+    stdin.once('data', function (data) {
+        callback(data.toString().trim());
     });
 }
 
@@ -186,12 +241,10 @@ function requestApi(url, cb){
         //console.log(response);
         if (!error && response.statusCode == 200) {
             var data = JSON.parse(body);
-            //console.log(data);
             cb(null, data);
         }
         else{
             console.log("\n\nSomething is wrong!!!");
-            //console.log(response.status);
             cb(error, null);
         }
     });
@@ -216,9 +269,9 @@ word = 'freedom';
 //getExamples(word);
 //getWOD();
 //getRandomWord();
-getFullDict(word, function(result){
-    console.log(result);
-});
-//play();
+//getFullDict(word, function(result){
+//    console.log(result);
+//});
+play();
 
 //console.log(args)
