@@ -88,7 +88,6 @@ function getExamples(word, callback){
 
     requestApi(url, function(error, json_data){
         var examples = [];
-        console.log(json_data);
         if(!error){
             async.each(json_data.examples, function(example, cb){
                 examples.push(example.text);
@@ -107,13 +106,37 @@ function getExamples(word, callback){
 }
 
 //Method to get full information about word
-function getFullDict(word, callback){
+function getFullDict(word, cb){
     var fullInfo = [];
-    fullInfo.push(getDefinitions(word));
-    fullInfo.push(getSynonyms(word));
-    fullInfo.push(getAntonyms(word));
-    fullInfo.push(getExamples(word));
-    console.log(fullInfo);
+
+    async.series([
+        function(callback){
+            getDefinitions(word, function(result){
+                fullInfo.push(result);
+                callback();
+            });
+        },
+        function(callback){
+            getSynonyms(word, function(result){
+                fullInfo.push(result);
+                callback();
+            });
+        },
+        function(callback){
+            getAntonyms(word, function(result){
+                fullInfo.push(result);
+                callback();
+            });
+        },
+        function(callback){
+            getExamples(word, function(result){
+                fullInfo.push(result);
+                callback();
+            })}], 
+        function(result){
+            //console.log(fullInfo);
+            cb(fullInfo);
+        });
 }
 
 //Method to get word of the day
@@ -152,8 +175,9 @@ function getRandomWord(callback){
 
 //Method to play word game
 function play(){
-    
-    return;
+    getRandomWord(function(output){
+        console.log(output.word);
+    });
 }
 
 //Method to call api
@@ -184,14 +208,17 @@ var args = process.argv.slice(2);
 
 word = 'freedom';
 
-getWOD(function(defs){
-    console.log(defs);
-})
+//getWOD(function(defs){
+//    console.log(defs);
+//})
 //getSynonyms(word);
 //getAntonyms(word);
 //getExamples(word);
 //getWOD();
 //getRandomWord();
-//getFullDict(word);
+getFullDict(word, function(result){
+    console.log(result);
+});
+//play();
 
 //console.log(args)
