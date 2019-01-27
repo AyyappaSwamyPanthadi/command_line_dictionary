@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var request = require('request');
 
 var headers = {
@@ -147,4 +149,6 @@ word = 'freedom';
 //getAntonyms(word);
 //getExamples(word);
 //getWOD();
-getRandomWord();
+//getRandomWord();
+
+console.log(args)
